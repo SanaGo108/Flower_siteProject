@@ -1,0 +1,147 @@
+/* Основные стили */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    background-color: rgba(255, 182, 193, 0.9);
+}
+
+.nav-link {
+    color: #000;
+    font-weight: bold;
+}
+
+.nav-link:hover {
+    color: #007bff;
+}
+
+/* Стили для карточек каталога */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card img {
+    border-bottom: 3px solid #ff69b4;
+}
+
+.card-title {
+    color: #fff;
+}
+
+.btn-light {
+    background-color: #ff69b4;
+    color: #fff;
+}
+
+.btn-light:hover {
+    background-color: #ff85c0;
+}
+
+
+/* Стили для подвала */
+.footer {
+    background-color: rgba(255, 182, 193, 0.9);
+    color: #000;
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.footer .social-icons {
+    margin-top: 1rem;
+}
+
+.footer .social-icons a {
+    margin: 0 10px;
+    color: #000;
+    text-decoration: none;
+    font-size: 1.8rem;
+}
+
+.footer .social-icons a:hover {
+    color: #007bff;
+}
+
+/* Стили для таблиц */
+.table-bordered {
+    border: 1px solid #ddd;
+}
+
+.table th,
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Кнопки */
+.btn-pink {
+    background-color: #ff69b4; /* Нежно-розовый цвет */
+    color: #fff; /* Белый цвет текста */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-pink:hover {
+    background-color: #ff85c0; /* Светлее при наведении */
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-pink:active {
+    background-color: #ff4a94; /* Темнее при нажатии */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+}
+
+
+/* Формы */
+.form-control {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 5px rgba(128, 189, 255, 0.5);
+}
+
+.registration-form {
+    max-width: 500px;
+    margin: 50px auto;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.registration-form h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ff69b4;
+}
+
+.registration-form .btn-primary {
+    background-color: #ff69b4;
+    border-color: #ff69b4;
+}
+
+.registration-form .btn-primary:hover {
+    background-color: #ff85c0;
+    border-color: #ff85c0;
+}

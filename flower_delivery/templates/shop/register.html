@@ -1,0 +1,30 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="registration-form">
+    <h1>Register</h1>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" name="username" id="username" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" name="email" id="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="password1" class="form-label">Password</label>
+            <input type="password" name="password1" id="password1" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="password2" class="form-label">Confirm Password</label>
+            <input type="password" name="password2" id="password2" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+    </form>
+</div>
+{% endblock %}
+

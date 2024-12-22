@@ -1,0 +1,56 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Catalog{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Каталог цветов</h1>
+<div class="row">
+    {% for flower in flowers %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow" style="border: none; background-color: rgba(255, 182, 193, 0.9);">
+            <img src="{{ flower.image.url }}" class="card-img-top" alt="{{ flower.name }}" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+                <h5 class="card-title text-white">{{ flower.name }}</h5>
+                <p class="card-text text-white">Price: ${{ flower.price }}</p>
+                <div class="d-flex align-items-center mb-3">
+                    <button class="btn btn-outline-light btn-sm me-2" onclick="changeQuantity(this, -1)">-</button>
+                    <input type="number" value="1" class="form-control text-center" style="width: 60px;" min="1" data-price="{{ flower.price }}" data-id="{{ flower.id }}">
+                    <button class="btn btn-outline-light btn-sm ms-2" onclick="changeQuantity(this, 1)">+</button>
+                </div>
+                <button class="btn btn-light w-100" onclick="addToCart({{ flower.id }}, this)">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    function changeQuantity(button, change) {
+        const input = button.parentElement.querySelector("input");
+        let value = parseInt(input.value);
+        value = Math.max(1, value + change); // Ensure at least 1
+        input.value = value;
+    }
+
+    function addToCart(productId, button) {
+        const input = button.parentElement.querySelector("input");
+        const quantity = input.value;
+        const price = input.dataset.price;
+
+        fetch(`/cart/add/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ id: productId, quantity: quantity, price: price })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Product added to cart!");
+            }
+        });
+    }
+</script>
+{% endblock %}

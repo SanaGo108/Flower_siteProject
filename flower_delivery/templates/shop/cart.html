@@ -1,0 +1,32 @@
+{% extends "shop/base.html" %}
+{% load custom_filters %}
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Your Cart</h1>
+<form method="post" action="/cart/checkout/">
+    {% csrf_token %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart %}
+            <tr>
+                <td>{{ item.flower.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ item.flower.price }}</td>
+                <td>${{ item.quantity|multiply:item.flower.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="text-end fw-bold">Total: ${{ cart_total }}</p>
+    <button type="submit" class="btn btn-primary">Checkout</button>
+</form>
+{% endblock %}
