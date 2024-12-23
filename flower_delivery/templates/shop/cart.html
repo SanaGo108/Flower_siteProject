@@ -3,30 +3,34 @@
 {% block title %}Cart{% endblock %}
 
 {% block content %}
-<h1 class="text-center mb-4">Your Cart</h1>
+<h1 class="text-center mb-4">Ваша корзина</h1>
 <form method="post" action="/cart/checkout/">
     {% csrf_token %}
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart %}
-            <tr>
-                <td>{{ item.flower.name }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>${{ item.flower.price }}</td>
-                <td>${{ item.quantity|multiply:item.flower.price }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <p class="text-end fw-bold">Total: ${{ cart_total }}</p>
-    <button type="submit" class="btn btn-primary">Checkout</button>
+    <div class="table-container" style="background-color: rgba(255,185,196,0.55); padding: 20px; border-radius: 10px;">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Продукт</th>
+                    <th>Количество</th>
+                    <th>Цена</th>
+                    <th>Итого</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart %}
+                <tr>
+                    <td>{{ item.flower.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₽{{ item.flower.price }}</td>
+                    <td>₽{{ item.quantity|multiply:item.flower.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="text-end fw-bold">Total: ₽{{ cart_total }}</p>
+        <button type="submit" class="btn btn-primary" style="background-color: #ff69b4; border-color: #ff69b4;">Оформить заказ</button>
+    </div>
 </form>
 {% endblock %}
+
+

@@ -1,0 +1,26 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Оплата заказа{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="p-4 shadow rounded" style="background-color: rgba(255, 182, 193, 0.5); border-radius: 10px;">
+        <h1 class="mb-4" style="color: #ff69b4; font-weight: bold;">Это страница оплаты</h1>
+        <p>Здесь вы можете оплатить ваш заказ.</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-pink mt-3">Вернуться на главную</a>
+</div>
+
+<style>
+    .btn-pink {
+        background-color: #ff69b4;
+        color: #fff;
+        border: none;
+        font-weight: bold;
+    }
+
+    .btn-pink:hover {
+        background-color: #ff85c2;
+    }
+</style>
+{% endblock %}

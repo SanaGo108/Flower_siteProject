@@ -1,0 +1,28 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Заказ оформлен{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="p-4 shadow rounded" style="background-color: rgba(255, 182, 193, 0.5); border-radius: 10px;">
+        <h1 class="mb-4" style="color: #ff69b4; font-weight: bold;">Ваш заказ успешно оформлен!</h1>
+        <p>Спасибо за ваш заказ! Мы свяжемся с вами для подтверждения доставки.</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-pink mt-3">Вернуться на главную</a>
+    <a href="https://t.me/FlowerDeliveryshop_bot" target="_blank" class="btn btn-pink mt-3">Перейти в Телеграм бот</a>
+</div>
+
+<style>
+    .btn-pink {
+        background-color: #ff69b4;
+        color: #fff;
+        border: none;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .btn-pink:hover {
+        background-color: #ff85c2;
+    }
+</style>
+{% endblock %}

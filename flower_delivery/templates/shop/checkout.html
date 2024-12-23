@@ -1,0 +1,75 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Оформление заказа</h1>
+
+    <!-- Уведомления об ошибках -->
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'checkout' %}" class="p-4 shadow rounded" style="background-color: rgba(255, 240, 245, 0.8);">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="telegram_username" class="form-label">Имя пользователя в Телеграм</label>
+            <input type="text" id="telegram_username" name="telegram_username" class="form-control" placeholder="Введите ваше имя в Телеграм" required>
+        </div>
+        <div class="mb-3">
+            <label for="delivery_date" class="form-label">Дата доставки</label>
+            <input type="date" id="delivery_date" name="delivery_date" class="form-control" placeholder="Выберите дату" required>
+        </div>
+        <div class="mb-3">
+            <label for="delivery_time" class="form-label">Время доставки</label>
+            <input type="time" id="delivery_time" name="delivery_time" class="form-control" placeholder="Выберите время" required>
+        </div>
+        <div class="mb-3">
+            <label for="delivery_address" class="form-label">Адрес доставки</label>
+            <textarea id="delivery_address" name="delivery_address" class="form-control" rows="3" placeholder="Введите адрес доставки" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="comment" class="form-label">Комментарий</label>
+            <textarea id="comment" name="comment" class="form-control" rows="3" placeholder="Добавьте комментарий (по желанию)"></textarea>
+        </div>
+        <button type="submit" class="btn btn-pink w-100" onclick="showLoading()">Оформить заказ</button>
+    </form>
+</div>
+
+<!-- Стили -->
+<style>
+    .btn-pink {
+        background-color: #ff69b4;
+        color: #fff;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .btn-pink:hover {
+        background-color: #ff85c2;
+    }
+
+    .btn-pink:disabled {
+        background-color: #ffc0cb;
+        cursor: not-allowed;
+    }
+</style>
+
+<!-- Скрипт -->
+<script>
+    function showLoading() {
+        const button = document.querySelector('.btn-pink');
+        button.textContent = 'Обработка...';
+        button.disabled = true;
+
+        // Имитация успешного редиректа
+        setTimeout(() => {
+            window.location.href = "{% url 'success_page' %}";
+        }, 2000);
+    }
+</script>
+{% endblock %}
