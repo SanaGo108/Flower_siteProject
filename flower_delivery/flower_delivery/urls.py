@@ -10,12 +10,13 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('catalog/', views.catalog, name='catalog'),
     path('cart/', views.cart, name='cart'),
-    path("cart/add/", views.add_to_cart, name="add_to_cart"),
+    path('cart/update/', views.update_cart, name='update_cart'),  # Добавлен маршрут для обновления корзины
+    path('cart/add/', views.add_to_cart, name="add_to_cart"),
     path('cart/checkout/', views.checkout, name='checkout'),  # Добавить обработчик checkout
     path('accounts/', include('django.contrib.auth.urls')),  # Добавляем маршруты аутентификации
     path('accounts/register/', views.register, name='register'),  # Маршрут регистрации
     path('success/', views.success_page, name='success_page'),  # Добавьте этот маршрут
-    path('bot/start/', lambda request: redirect('https://t.me/FlowerDeliveryshop_bot')),
+    path('bot/start/', lambda request: redirect('https://t.me/FlDel_bot')),
     path('payment/', views.payment, name='payment'),  # Новый маршрут для оплаты Ссылка на бота
 ]
 

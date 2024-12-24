@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+from asgiref.sync import sync_to_async
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -42,25 +43,36 @@ async def start(update, context):
 async def handle_callback(update, context):
     try:
         query = update.callback_query
-        user_name = query.from_user.username or "Гость"
+        user_name = query.from_user.username
+        user_id = query.from_user.id  # Идентификатор пользователя в Телеграм
 
-        logger.info(f"Кнопка нажата: {query.data}")
+        logger.info(f"Кнопка нажата: {query.data} от пользователя: {user_name} ({user_id})")
         await query.answer()
 
         if query.data == "register":
             await query.message.reply_text(f"Привет, {user_name}! Вы успешно зарегистрированы.")
         elif query.data == "my_order":
             # Проверка наличия заказов пользователя
-            orders = Order.objects.filter(telegram_username=user_name).prefetch_related("orderitem_set")
-            if not orders.exists():
-                await query.message.reply_text("У вас пока нет заказов.")
-                return
+            orders = await sync_to_async(list)(
+                Order.objects.filter(telegram_username=user_name).prefetch_related("orderitem_set")
+            )
+
+            if not orders:
+                # Альтернативная проверка по user_id или другому параметру
+                orders_by_id = await sync_to_async(list)(
+                    Order.objects.filter(user_id=user_id).prefetch_related("orderitem_set")
+                )
+
+                if not orders_by_id:
+                    await query.message.reply_text("У вас пока нет заказов.")
+                    return
+                orders = orders_by_id
 
             # Отправка данных о заказах
             for order in orders:
                 for item in order.orderitem_set.all():
                     photo_url = item.flower.image.url if item.flower.image else None
-                    caption = (f"🌸 Букет: {item.flower.name}\n"
+                    caption = (f"\ud83c\udf38 Букет: {item.flower.name}\n"
                                f"Количество: {item.quantity}\n"
                                f"Стоимость: ₽{item.quantity * item.flower.price}")
                     if photo_url:
@@ -73,6 +85,27 @@ async def handle_callback(update, context):
             await query.message.reply_text("Свяжитесь с нашим менеджером по телефону: +7 123 456 78 90")
     except Exception as e:
         logger.error(f"Ошибка в обработке callback: {e}")
+
+# Функция для отправки уведомления о новом заказе
+async def send_order_notification(order):
+    try:
+        logger.info(f"Отправка уведомления о заказе: {order}")
+        caption = f"\ud83d\uded2 Новый заказ!\n"
+        caption += f"\ud83d\udd11 Номер заказа: {order.id}\n"
+        caption += f"\ud83d\udcc5 Дата доставки: {order.delivery_date}\n"
+        caption += f"\ud83d\udd52 Время доставки: {order.delivery_time}\n"
+        caption += f"\ud83c\udfe1 Адрес: {order.delivery_address}\n\n"
+
+        for item in order.orderitem_set.all():
+            item_caption = (f"\ud83c\udf38 {item.flower.name} - {item.quantity} шт. x ₽{item.flower.price} = ₽{item.quantity * item.flower.price}\n")
+            caption += item_caption
+
+        caption += f"\n\ud83d\udcb5 Общая стоимость: ₽{order.total_price}"
+
+        # Отправка сообщения боту (замените CHAT_ID на ID чата бота или пользователя)
+        await Application.builder().token(BOT_TOKEN).build().bot.send_message(chat_id=order.telegram_username, text=caption)
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомления о заказе: {e}")
 
 # Функция для настройки и запуска бота
 def setup_bot():
@@ -89,4 +122,3 @@ def setup_bot():
 
 if __name__ == "__main__":
     setup_bot()
-

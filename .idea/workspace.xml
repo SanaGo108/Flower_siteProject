@@ -5,35 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c24e7239-55d9-4b50-ad3d-9f5a018ed413" name="Changes" comment="add">
-      <change afterPath="$PROJECT_DIR$/flower_delivery/flower_delivery/bot.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/gerbers.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/krem-rose.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/lilii.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/orqideys.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/pions.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/rose.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/букет с эвкалиптом.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/калы.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/новогодняя композиция.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/пионы.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/хризантема.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/media/flowers/экзотик с антуриумом.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/shop/migrations/0003_remove_order_flowers_alter_order_total_price_and_more.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/templates/shop/checkout.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/templates/shop/payment.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/flower_delivery/templates/shop/success_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flower_delivery/shop/migrations/0004_order_telegram_username.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flower_delivery/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/flower_delivery/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flower_delivery/flower_delivery/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/flower_delivery/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/flower_delivery/flower_delivery/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/flower_delivery/bot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/flower_delivery/flower_delivery/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/flower_delivery/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flower_delivery/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/manage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flower_delivery/shop/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/shop/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/flower_delivery/shop/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/shop/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flower_delivery/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/static/css/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/flower_delivery/templates/shop/cart.html" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/templates/shop/cart.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flower_delivery/templates/shop/catalog.html" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/templates/shop/catalog.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/flower_delivery/templates/shop/success_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/templates/shop/success_page.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,6 +60,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "Git",
+    "ignore.virus.scanning.warn.message": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -96,11 +76,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\sanag\PycharmProjects\Flower_siteProject" />
       <recent name="C:\Users\sanag\PycharmProjects\Flower_siteProject\flower_delivery\flower_delivery" />
       <recent name="C:\Users\sanag\PycharmProjects\Flower_siteProject\flower_delivery" />
       <recent name="C:\Users\sanag\PycharmProjects\Flower_siteProject\flower_delivery\media\Flowers" />
       <recent name="C:\Users\sanag\PycharmProjects\Flower_siteProject\flower_delivery\shop" />
-      <recent name="C:\Users\sanag\PycharmProjects\Flower_siteProject\flower_delivery\templates\shop" />
     </key>
   </component>
   <component name="RunManager" selected="Python.bot (1)">
@@ -198,7 +178,8 @@
       <option name="presentableId" value="Default" />
       <updated>1734861924402</updated>
       <workItem from="1734861925446" duration="15503000" />
-      <workItem from="1734880055467" duration="36801000" />
+      <workItem from="1734880055467" duration="36895000" />
+      <workItem from="1734992049716" duration="12228000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <option name="closed" value="true" />
@@ -224,7 +205,15 @@
       <option name="project" value="LOCAL" />
       <updated>1734879730074</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add">
+      <option name="closed" value="true" />
+      <created>1734990133580</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1734990133580</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -237,6 +226,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Flower_siteProject$manage.coverage" NAME="manage Coverage Results" MODIFIED="1734864940051" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery" />
     <SUITE FILE_PATH="coverage/Flower_siteProject$bot.coverage" NAME="bot Coverage Results" MODIFIED="1734901841153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery/shop" />
-    <SUITE FILE_PATH="coverage/Flower_siteProject$bot__1_.coverage" NAME="bot (1) Coverage Results" MODIFIED="1734982850641" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery/flower_delivery" />
+    <SUITE FILE_PATH="coverage/Flower_siteProject$bot__1_.coverage" NAME="bot (1) Coverage Results" MODIFIED="1735069545336" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery/flower_delivery" />
   </component>
 </project>
