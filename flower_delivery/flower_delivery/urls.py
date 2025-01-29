@@ -5,6 +5,12 @@ from django.urls import path, include
 from shop import views
 from django.conf.urls.static import static
 
+import logging
+
+# Настройка логирования
+logger = logging.getLogger(__name__)
+logger.info("URL configuration loaded successfully")
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
@@ -14,6 +20,7 @@ urlpatterns = [
     path('cart/add/', views.add_to_cart, name="add_to_cart"),
     path('cart/checkout/', views.checkout, name='checkout'),  # Добавить обработчик checkout
     path('accounts/', include('django.contrib.auth.urls')),  # Добавляем маршруты аутентификации
+    path('cart/send_to_bot/', views.send_to_bot, name='send_to_bot'),
     path('accounts/register/', views.register, name='register'),  # Маршрут регистрации
     path('success/', views.success_page, name='success_page'),  # Добавьте этот маршрут
     path('bot/start/', lambda request: redirect('https://t.me/FlDel_bot')),

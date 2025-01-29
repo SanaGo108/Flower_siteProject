@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from flower_delivery.bot import send_order_notification
 
+
 from .models import Order, OrderItem, Flower, CartItem
 
 def home(request):
@@ -31,36 +32,65 @@ def add_to_cart(request):
             return JsonResponse({"success": True})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False})
+    return JsonResponse({"success": False, "error": "Invalid request method."})
+
+
+@csrf_exempt
+def send_to_bot(request):
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "error": "Пользователь не авторизован."})
+        try:
+            cart_items = CartItem.objects.all()
+            if not cart_items.exists():
+                return JsonResponse({"success": False, "error": "Корзина пуста."})
+
+            items = []
+            total_price = 0
+            for item in cart_items:
+                items.append({
+                    "name": item.flower.name,
+                    "quantity": item.quantity,
+                    "price": item.flower.price,
+                    "total": item.quantity * item.flower.price,
+                    "photo": item.flower.image.url if item.flower.image else None,
+                })
+                total_price += item.quantity * item.flower.price
+
+            telegram_username = getattr(request.user.profile, 'telegram_username', None)
+            if not telegram_username:
+                return JsonResponse({"success": False, "error": "Telegram username не найден. Укажите его в профиле."})
+
+            send_order_notification(telegram_username, items, total_price)
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Некорректный метод запроса."})
+
+
+
+def cart(request):
+    cart_items = CartItem.objects.all()
+    total_price = sum(item.quantity * item.flower.price for item in cart_items)
+    return render(request, 'shop/cart.html', {"cart": cart_items, "cart_total": total_price})
 
 @csrf_exempt
 def update_cart(request):
     if request.method == "POST":
         try:
-            # Проверяем, что тело запроса существует
             if not request.body:
                 return JsonResponse({"success": False, "error": "Request body is empty."})
 
-            # Попытка загрузить JSON из тела запроса
-            try:
-                data = json.loads(request.body)
-            except json.JSONDecodeError as e:
-                return JsonResponse({"success": False, "error": f"Invalid JSON: {str(e)}"})
-
-            # Извлекаем данные из JSON
+            data = json.loads(request.body)
             flower_id = data.get("id")
             quantity = data.get("quantity")
 
-            # Проверяем наличие и валидность параметров
             if flower_id is None or quantity is None:
                 return JsonResponse({"success": False, "error": "Missing 'id' or 'quantity'."})
 
-            try:
-                quantity = int(quantity)
-            except ValueError:
-                return JsonResponse({"success": False, "error": "Invalid value for 'quantity'. Must be an integer."})
+            quantity = int(quantity)
 
-            # Обновляем или удаляем товар в корзине
             if quantity < 1:
                 CartItem.objects.filter(flower_id=flower_id).delete()
             else:
@@ -77,17 +107,11 @@ def update_cart(request):
 
 
 
-
-def cart(request):
-    cart_items = CartItem.objects.all()
-    total_price = sum(item.quantity * item.flower.price for item in cart_items)
-    return render(request, 'shop/cart.html', {"cart": cart_items, "cart_total": total_price})
-
 @login_required
 def checkout(request):
     if request.method == 'POST':
         try:
-            telegram_username = request.POST.get('telegram_username', request.user.username)
+            telegram_username = request.user.profile.telegram_username  # Получаем Telegram username из профиля
             delivery_date = request.POST.get('delivery_date')
             delivery_time = request.POST.get('delivery_time')
             delivery_address = request.POST.get('delivery_address')
@@ -107,21 +131,33 @@ def checkout(request):
             )
 
             cart_items = CartItem.objects.all()
-            total_price = sum(
-                OrderItem.objects.create(order=order, flower=item.flower, quantity=item.quantity).flower.price * item.quantity
-                for item in cart_items
-            )
+            items_data = []
+            total_price = 0
+
+            for item in cart_items:
+                OrderItem.objects.create(order=order, flower=item.flower, quantity=item.quantity)
+                items_data.append({
+                    "name": item.flower.name,
+                    "quantity": item.quantity,
+                    "price": item.flower.price,
+                    "total": item.quantity * item.flower.price,
+                    "photo": item.flower.image.url if item.flower.image else None,
+                })
+                total_price += item.quantity * item.flower.price
+
             cart_items.delete()
             order.total_price = total_price
             order.save()
 
-            send_order_notification(order)
+            # Отправляем данные о заказе в Telegram
+            send_order_notification(telegram_username, items_data, total_price)
 
             return redirect('success_page')
         except Exception as e:
             return render(request, 'shop/checkout.html', {"error": str(e)})
 
     return render(request, 'shop/checkout.html')
+
 
 def success_page(request):
     return render(request, 'shop/success_page.html')

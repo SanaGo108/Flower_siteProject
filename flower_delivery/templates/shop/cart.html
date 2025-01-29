@@ -35,7 +35,9 @@
 </div>
 <!-- Кнопка Оформить заказ -->
 <div class="text-end mt-3">
-    <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg" style="background-color: #ff69b4; border-color: #ff69b4;">Оформить заказ</a>
+    <button id="checkout-button" class="btn btn-primary btn-lg" style="background-color: #ff69b4; border-color: #ff69b4;">
+        Оформить заказ
+    </button>
 </div>
 
 <!-- Стили для кнопок -->
@@ -76,5 +78,30 @@
             .catch(error => console.error('Ошибка:', error));
         });
     });
+
+    // Обработчик для кнопки оформления заказа
+    document.getElementById('checkout-button').addEventListener('click', function (event) {
+        event.preventDefault(); // Останавливаем стандартное действие кнопки
+
+        fetch('/cart/send_to_bot/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Переход на страницу оформления заказа после успешной отправки
+                window.location.href = '/cart/checkout/';
+            } else {
+                alert('Ошибка при оформлении заказа: ' + data.error);
+            }
+        })
+        .catch(error => console.error('Ошибка:', error));
+    });
 </script>
 {% endblock %}
+
