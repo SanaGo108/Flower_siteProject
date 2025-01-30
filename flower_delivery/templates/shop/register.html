@@ -1,35 +1,114 @@
 {% extends "shop/base.html" %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Регистрация{% endblock %}
 
 {% block content %}
-<div class="registration-form">
-    <h1>Register</h1>
-    <form method="post" novalidate>
+<div class="container mt-4">
+    <h1 class="text-center">Регистрация</h1>
+
+    <!-- Выводим сообщения об успехе или ошибке -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Выводим ошибки формы -->
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" class="mt-3">
         {% csrf_token %}
+
         <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" name="username" id="username" class="form-control" required>
+            <label for="id_username" class="form-label">Имя пользователя</label>
+            <input type="text" name="username" id="id_username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" required>
+            {% if form.username.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.username.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <div class="mb-3">
-            <label for="Telegram_username" class="form-label">Telegram_username</label>
-            <input type="text" name="username" id="Telegram_username" class="form-control" required>
+            <label for="id_telegram_username" class="form-label">Telegram Username</label>
+            <input type="text" name="telegram_username" id="id_telegram_username" class="form-control {% if form.telegram_username.errors %}is-invalid{% endif %}" required>
+            {% if form.telegram_username.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.telegram_username.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control" required>
+            <label for="id_email" class="form-label">Email</label>
+            <input type="email" name="email" id="id_email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" required>
+            {% if form.email.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.email.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
+
         <div class="mb-3">
-            <label for="password1" class="form-label">Password</label>
-            <input type="password" name="password1" id="password1" class="form-control" required>
+            <label for="id_password1" class="form-label">Пароль</label>
+            <input type="password" name="password1" id="id_password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" required>
+            {% if form.password1.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.password1.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
+
         <div class="mb-3">
-            <label for="password2" class="form-label">Confirm Password</label>
-            <input type="password" name="password2" id="password2" class="form-control" required>
+            <label for="id_password2" class="form-label">Повторите пароль</label>
+            <input type="password" name="password2" id="id_password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" required>
+            {% if form.password2.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.password2.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
-        <button type="submit" class="btn btn-primary w-100">Register</button>
+
+        <button type="submit" class="btn btn-pink w-100">Зарегистрироваться</button>
     </form>
+
+    <div class="text-center mt-3">
+        <p>Уже есть аккаунт? <a href="{% url 'login' %}" class="btn btn-pink">Войти</a></p>
+    </div>
 </div>
+
+<!-- Добавляем стили для кнопки -->
+<style>
+    .btn-pink {
+        background-color: #ff69b4; /* Розовый цвет */
+        border-color: #ff69b4;
+        color: white;
+    }
+
+    .btn-pink:hover {
+        background-color: #ff1493;
+        border-color: #ff1493;
+        color: white;
+    }
+</style>
 {% endblock %}

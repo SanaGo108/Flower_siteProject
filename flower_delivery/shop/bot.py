@@ -6,6 +6,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils import executor
 from asgiref.sync import sync_to_async
 
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,7 +16,8 @@ project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'flower_delivery.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'flower_delivery.flower_delivery.settings')
+
 
 # Установка Django окружения
 try:
@@ -87,19 +89,25 @@ async def handle_callback(query: types.CallbackQuery):
 # Отправка уведомления о новом заказе
 async def send_order_notification(telegram_username, items, total_price):
     try:
-        message = "🛒 Новый заказ:\n"
+        message = "🛒 *Новый заказ*\n\n"
         for item in items:
             message += (
                 f"🌸 {item['name']} - {item['quantity']} шт. x ₽{item['price']} = ₽{item['total']}\n"
             )
-        message += f"\n💰 Общая стоимость: ₽{total_price}"
+        message += f"\n💰 *Общая стоимость:* ₽{total_price}\n"
+        message += f"\n📍 *Адрес доставки:* {items[0].get('delivery_address', 'Не указан')}\n"
+        message += f"🕒 *Время доставки:* {items[0].get('delivery_time', 'Не указано')}\n"
+        message += f"💬 *Комментарий:* {items[0].get('comment', 'Нет комментария')}\n"
 
-        await bot.send_message(chat_id=f"@{telegram_username}", text=message)
+        await bot.send_message(chat_id=f"@{telegram_username}", text=message, parse_mode="Markdown")
+
         for item in items:
             if item["photo"]:
                 await bot.send_photo(chat_id=f"@{telegram_username}", photo=item["photo"])
+
     except Exception as e:
         logging.error(f"Ошибка при отправке уведомления: {e}")
+
 
 # Запуск бота
 if __name__ == "__main__":

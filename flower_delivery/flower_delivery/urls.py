@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from shop import views
 from django.conf.urls.static import static
 
@@ -25,6 +26,8 @@ urlpatterns = [
     path('success/', views.success_page, name='success_page'),  # Добавьте этот маршрут
     path('bot/start/', lambda request: redirect('https://t.me/FlDel_bot')),
     path('payment/', views.payment, name='payment'),  # Новый маршрут для оплаты Ссылка на бота
+    path("profile/", views.profile, name="profile"),
+    path("logout/", auth_views.LogoutView.as_view(next_page="home"), name="logout"),
 ]
 
 # Маршруты для медиафайлов в режиме отладки
