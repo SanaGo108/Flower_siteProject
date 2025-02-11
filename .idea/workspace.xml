@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c24e7239-55d9-4b50-ad3d-9f5a018ed413" name="Changes" comment="add" />
+    <list default="true" id="c24e7239-55d9-4b50-ad3d-9f5a018ed413" name="Changes" comment="add">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/flower_delivery/shop/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/flower_delivery/shop/bot.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -247,6 +250,7 @@
       <workItem from="1736425611123" duration="1360000" />
       <workItem from="1736430362173" duration="11124000" />
       <workItem from="1738147307485" duration="21670000" />
+      <workItem from="1739006326748" duration="2638000" />
     </task>
     <task id="LOCAL-00001" summary="add">
       <option name="closed" value="true" />
@@ -320,7 +324,15 @@
       <option name="project" value="LOCAL" />
       <updated>1738361065254</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="add">
+      <option name="closed" value="true" />
+      <created>1739006564730</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1739006564730</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -334,6 +346,6 @@
     <SUITE FILE_PATH="coverage/Flower_siteProject$manage.coverage" NAME="manage Coverage Results" MODIFIED="1734864940051" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery" />
     <SUITE FILE_PATH="coverage/Flower_siteProject$bot11.coverage" NAME="bot11 Coverage Results" MODIFIED="1738254064823" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery" />
     <SUITE FILE_PATH="coverage/Flower_siteProject$bot.coverage" NAME="bot Coverage Results" MODIFIED="1738253642137" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery/shop" />
-    <SUITE FILE_PATH="coverage/Flower_siteProject$bot__1_.coverage" NAME="bot (1) Coverage Results" MODIFIED="1738258344911" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery/shop" />
+    <SUITE FILE_PATH="coverage/Flower_siteProject$bot__1_.coverage" NAME="bot (1) Coverage Results" MODIFIED="1739290830355" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/flower_delivery/shop" />
   </component>
 </project>

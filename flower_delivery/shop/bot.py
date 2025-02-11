@@ -6,7 +6,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils import executor
 from asgiref.sync import sync_to_async
 
-
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,10 +17,10 @@ if project_path not in sys.path:
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'flower_delivery.flower_delivery.settings')
 
-
 # Установка Django окружения
 try:
     import django
+
     django.setup()
 except Exception as e:
     logger.error(f"Ошибка при настройке Django: {e}")
@@ -32,6 +31,7 @@ from shop.models import Order, OrderItem
 BOT_TOKEN = '7558727339:AAFkPjY1BSCHYBoNW5fOtDmuNDYz90kvYYA'
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
+
 
 # Команда /start
 @dp.message_handler(commands=['start'])
@@ -48,6 +48,7 @@ async def start_command(message: types.Message):
         await message.answer("Здравствуйте, это бот-помощник FlowerDelivery. Выберите действие:", reply_markup=keyboard)
     except Exception as e:
         logger.error(f"Ошибка в команде /start: {e}")
+
 
 # Обработка нажатий кнопок
 @dp.callback_query_handler()
@@ -68,6 +69,7 @@ async def handle_callback(query: types.CallbackQuery):
                 return
 
             for order in orders:
+                items = []
                 for item in order.orderitem_set.all():
                     photo_url = item.flower.image.url if item.flower.image else None
                     caption = (
@@ -75,10 +77,16 @@ async def handle_callback(query: types.CallbackQuery):
                         f"Количество: {item.quantity}\n"
                         f"Стоимость: ₽{item.quantity * item.flower.price}"
                     )
-                    if photo_url:
-                        await bot.send_photo(chat_id=query.from_user.id, photo=photo_url, caption=caption)
-                    else:
-                        await bot.send_message(chat_id=query.from_user.id, text=caption)
+                    items.append({
+                        "name": item.flower.name,
+                        "quantity": item.quantity,
+                        "price": item.flower.price,
+                        "total": item.quantity * item.flower.price,
+                        "photo": photo_url
+                    })
+
+                await send_order_notification(user_name, items, sum(i["total"] for i in items))
+
         elif query.data == "payment":
             await query.message.answer("Перейдите на страницу оплаты: http://127.0.0.1:8000/payment/")
         elif query.data == "help":
@@ -86,10 +94,11 @@ async def handle_callback(query: types.CallbackQuery):
     except Exception as e:
         logger.error(f"Ошибка в обработке callback: {e}")
 
-# Отправка уведомления о новом заказе
+
+# Функция отправки уведомления о новом заказе
 async def send_order_notification(telegram_username, items, total_price):
     try:
-        message = "🛒 *Новый заказ*\n\n"
+        message = f"🛒 *Новый заказ*\n\n"
         for item in items:
             message += (
                 f"🌸 {item['name']} - {item['quantity']} шт. x ₽{item['price']} = ₽{item['total']}\n"
@@ -107,6 +116,35 @@ async def send_order_notification(telegram_username, items, total_price):
 
     except Exception as e:
         logging.error(f"Ошибка при отправке уведомления: {e}")
+
+
+# Вызов функции при создании заказа
+async def create_order(telegram_username, order_items, delivery_address=None, delivery_time=None, comment=None):
+    try:
+        total_price = sum(item["quantity"] * item["price"] for item in order_items)
+        order = await sync_to_async(Order.objects.create)(
+            telegram_username=telegram_username,
+            total_price=total_price,
+            delivery_address=delivery_address,
+            delivery_time=delivery_time,
+            comment=comment
+        )
+
+        for item in order_items:
+            await sync_to_async(OrderItem.objects.create)(
+                order=order,
+                flower_id=item["flower_id"],
+                quantity=item["quantity"]
+            )
+
+        # Отправка уведомления пользователю
+        for item in order_items:
+            item["total"] = item["quantity"] * item["price"]
+
+        await send_order_notification(telegram_username, order_items, total_price)
+
+    except Exception as e:
+        logger.error(f"Ошибка при создании заказа: {e}")
 
 
 # Запуск бота
