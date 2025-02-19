@@ -1,10 +1,13 @@
 import sys
 import os
 import logging
+import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils import executor
 from asgiref.sync import sync_to_async
+from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -20,13 +23,13 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'flower_delivery.flower_delivery
 # Установка Django окружения
 try:
     import django
-
     django.setup()
 except Exception as e:
     logger.error(f"Ошибка при настройке Django: {e}")
     raise
 
-from shop.models import Order, OrderItem
+Profile = apps.get_model('shop', 'Profile')
+Order = apps.get_model('shop', 'Order')
 
 BOT_TOKEN = '7558727339:AAFkPjY1BSCHYBoNW5fOtDmuNDYz90kvYYA'
 bot = Bot(token=BOT_TOKEN)
@@ -36,77 +39,79 @@ dp = Dispatcher(bot)
 # Команда /start
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
-    try:
-        logger.info("Команда /start вызвана")
-        keyboard = InlineKeyboardMarkup(row_width=2)
-        keyboard.add(
-            InlineKeyboardButton("Регистрация", callback_data="register"),
-            InlineKeyboardButton("Мой заказ", callback_data="my_order"),
-            InlineKeyboardButton("Помощь менеджера", callback_data="help"),
-            InlineKeyboardButton("Оплата заказа", callback_data="payment"),
-        )
-        await message.answer("Здравствуйте, это бот-помощник FlowerDelivery. Выберите действие:", reply_markup=keyboard)
-    except Exception as e:
-        logger.error(f"Ошибка в команде /start: {e}")
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton("Регистрация", callback_data="register"),
+        InlineKeyboardButton("Мой заказ", callback_data="my_order"),
+        InlineKeyboardButton("Помощь менеджера", callback_data="help"),
+        InlineKeyboardButton("Оплата заказа", callback_data="payment"),
+    )
+    await message.answer("Здравствуйте, это бот-помощник FlowerDelivery. Выберите действие:", reply_markup=keyboard)
 
 
-# Обработка нажатий кнопок
+# Обработка кнопок
 @dp.callback_query_handler()
 async def handle_callback(query: types.CallbackQuery):
+    user_name = query.from_user.username
+    logger.info(f"Кнопка нажата: {query.data} от пользователя: {user_name}")
+
+    if query.data == "register":
+        await query.message.answer(f"Привет, {user_name}! Вы успешно зарегистрированы.")
+
+    elif query.data == "my_order":
+        # Проверяем оба варианта Telegram username (@username и username)
+        profile = await sync_to_async(Profile.objects.filter(telegram_username__iexact=user_name).first)()
+        if not profile:
+            profile = await sync_to_async(Profile.objects.filter(telegram_username__iexact=f"@{user_name}").first)()
+
+        if not profile:
+            await query.message.answer("Ваш профиль не найден. Пожалуйста, зарегистрируйтесь на сайте.")
+            return
+
+        # Получаем пользователя
+        user = await sync_to_async(lambda: profile.user)()
+
+        # ⚡ Исправленный `async` запрос на поиск заказов ⚡
+        orders = await sync_to_async(lambda: list(Order.objects.filter(user=user).prefetch_related("orderitem_set")))()
+
+        if not orders:
+            await query.message.answer("У вас пока нет заказов.")
+            return
+
+        for order in orders:
+            items = []
+            for item in order.orderitem_set.all():
+                photo_url = item.flower.image.url if item.flower.image else None
+                items.append({
+                    "name": item.flower.name,
+                    "quantity": item.quantity,
+                    "price": item.flower.price,
+                    "total": item.quantity * item.flower.price,
+                    "photo": photo_url
+                })
+
+            await send_order_notification(user_name, items, sum(i["total"] for i in items))
+
+    elif query.data == "payment":
+        await query.message.answer("Перейдите на страницу оплаты: http://127.0.0.1:8000/payment/")
+    elif query.data == "help":
+        await query.message.answer("Свяжитесь с менеджером по телефону: +7 123 456 78 90")
+
+
+# Функция отправки уведомления
+async def send_order_notification(telegram_username, items, total_price, delivery_address, delivery_time, comment):
     try:
-        user_name = query.from_user.username
-        logger.info(f"Кнопка нажата: {query.data} от пользователя: {user_name}")
+        # ✅ Убираем "@" в Telegram username, если он есть
+        telegram_username = telegram_username.replace("@", "")
 
-        if query.data == "register":
-            await query.message.answer(f"Привет, {user_name}! Вы успешно зарегистрированы.")
-        elif query.data == "my_order":
-            orders = await sync_to_async(list)(
-                Order.objects.filter(telegram_username=user_name).prefetch_related("orderitem_set")
-            )
+        # ✅ Проверяем, может ли бот найти пользователя
+        user = await bot.get_chat(telegram_username)
+        chat_id = user.id
 
-            if not orders:
-                await query.message.answer("У вас пока нет заказов.")
-                return
-
-            for order in orders:
-                items = []
-                for item in order.orderitem_set.all():
-                    photo_url = item.flower.image.url if item.flower.image else None
-                    caption = (
-                        f"🌸 Букет: {item.flower.name}\n"
-                        f"Количество: {item.quantity}\n"
-                        f"Стоимость: ₽{item.quantity * item.flower.price}"
-                    )
-                    items.append({
-                        "name": item.flower.name,
-                        "quantity": item.quantity,
-                        "price": item.flower.price,
-                        "total": item.quantity * item.flower.price,
-                        "photo": photo_url
-                    })
-
-                await send_order_notification(user_name, items, sum(i["total"] for i in items))
-
-        elif query.data == "payment":
-            await query.message.answer("Перейдите на страницу оплаты: http://127.0.0.1:8000/payment/")
-        elif query.data == "help":
-            await query.message.answer("Свяжитесь с нашим менеджером по телефону: +7 123 456 78 90")
-    except Exception as e:
-        logger.error(f"Ошибка в обработке callback: {e}")
-
-
-# Функция отправки уведомления о новом заказе
-async def send_order_notification(telegram_username, items, total_price):
-    try:
-        message = f"🛒 *Новый заказ*\n\n"
+        message = f"🛒 *Ваш заказ*\n\n"
         for item in items:
-            message += (
-                f"🌸 {item['name']} - {item['quantity']} шт. x ₽{item['price']} = ₽{item['total']}\n"
-            )
+            message += f"🌸 {item['name']} - {item['quantity']} шт. x ₽{item['price']} = ₽{item['total']}\n"
         message += f"\n💰 *Общая стоимость:* ₽{total_price}\n"
-        message += f"\n📍 *Адрес доставки:* {items[0].get('delivery_address', 'Не указан')}\n"
-        message += f"🕒 *Время доставки:* {items[0].get('delivery_time', 'Не указано')}\n"
-        message += f"💬 *Комментарий:* {items[0].get('comment', 'Нет комментария')}\n"
 
         await bot.send_message(chat_id=f"@{telegram_username}", text=message, parse_mode="Markdown")
 
@@ -118,35 +123,12 @@ async def send_order_notification(telegram_username, items, total_price):
         logging.error(f"Ошибка при отправке уведомления: {e}")
 
 
-# Вызов функции при создании заказа
-async def create_order(telegram_username, order_items, delivery_address=None, delivery_time=None, comment=None):
-    try:
-        total_price = sum(item["quantity"] * item["price"] for item in order_items)
-        order = await sync_to_async(Order.objects.create)(
-            telegram_username=telegram_username,
-            total_price=total_price,
-            delivery_address=delivery_address,
-            delivery_time=delivery_time,
-            comment=comment
-        )
+# Запуск бота через `asyncio`
+async def main():
+    await dp.start_polling(bot)
 
-        for item in order_items:
-            await sync_to_async(OrderItem.objects.create)(
-                order=order,
-                flower_id=item["flower_id"],
-                quantity=item["quantity"]
-            )
-
-        # Отправка уведомления пользователю
-        for item in order_items:
-            item["total"] = item["quantity"] * item["price"]
-
-        await send_order_notification(telegram_username, order_items, total_price)
-
-    except Exception as e:
-        logger.error(f"Ошибка при создании заказа: {e}")
-
-
-# Запуск бота
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
+
+
+

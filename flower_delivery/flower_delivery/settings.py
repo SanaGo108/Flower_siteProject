@@ -107,7 +107,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ✅ Настройки входа/выхода
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'  # 🔥 После выхода - редирект на главную
+LOGOUT_REDIRECT_URL = '/login/'
 
 # ✅ Тип первичного ключа по умолчанию
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

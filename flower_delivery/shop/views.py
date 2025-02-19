@@ -1,248 +1,145 @@
-import json
-import logging
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import login
-from django.contrib import messages
-from django.utils.crypto import get_random_string
-from bot import send_order_notification
-
-from .models import Order, OrderItem, Flower, CartItem, Profile
-from .forms import CustomUserCreationForm
+import logging
 import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils import executor
+from asgiref.sync import sync_to_async
+from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps
 
-# Настройка логирования
+# ✅ Настройка логирования
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def home(request):
-    return render(request, 'shop/home.html')
+# ✅ Установка пути к проекту Django
+project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_path not in sys.path:
+    sys.path.append(project_path)
 
-def catalog(request):
-    flowers = Flower.objects.all()
-    return render(request, 'shop/catalog.html', {'flowers': flowers})
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'flower_delivery.settings')
 
-# Функция для проверки является ли пользователь администратором
-def is_admin(user):
-    return user.is_authenticated and user.is_superuser
+# ✅ Настройка Django окружения
+try:
+    import django
+    django.setup()
+except Exception as e:
+    logger.error(f"Ошибка при настройке Django: {e}")
+    raise
 
-# Ограничение доступа к админ-панели только для администраторов
-@user_passes_test(is_admin, login_url='/accounts/login/')
-def admin_panel(request):
-    return render(request, 'admin_panel.html')
+# ✅ Импорт моделей
+Profile = apps.get_model('shop', 'Profile')
+Order = apps.get_model('shop', 'Order')
+OrderItem = apps.get_model('shop', 'OrderItem')
+Flower = apps.get_model('shop', 'Flower')
 
-@login_required
-def cart(request):
-    cart_items = CartItem.objects.filter(user=request.user)
-    total_price = sum(item.quantity * item.flower.price for item in cart_items)
-    return render(request, 'shop/cart.html', {"cart": cart_items, "cart_total": total_price})
+# ✅ Токен бота
+BOT_TOKEN = '7558727339:AAFkPjY1BSCHYBoNW5fOtDmuNDYz90kvYYA'  # 🔥 ВСТАВЬ СВОЙ ТОКЕН
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(bot)
 
-@login_required
-def checkout(request):
-    if request.method == 'POST':
-        try:
-            user = request.user
-            profile = Profile.objects.get(user=user)
-            telegram_id = profile.telegram_id  # Используем ID Telegram
+# ✅ Главное меню
+@dp.message_handler(commands=['start'])
+async def start_command(message: types.Message):
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton("Регистрация", callback_data="register"),
+        InlineKeyboardButton("Мой заказ", callback_data="my_order"),
+        InlineKeyboardButton("Помощь менеджера", callback_data="help"),
+        InlineKeyboardButton("Оплата заказа", callback_data="payment"),
+    )
+    await message.answer("Здравствуйте, это бот-помощник FlowerDelivery. Выберите действие:", reply_markup=keyboard)
 
-            delivery_date = request.POST.get('delivery_date')
-            delivery_time = request.POST.get('delivery_time')
-            delivery_address = request.POST.get('delivery_address')
-            comment = request.POST.get('comment', '')
+# ✅ Обработчик кнопок
+@dp.callback_query_handler()
+async def handle_callback(query: types.CallbackQuery):
+    user_name = query.from_user.username  # Получаем Telegram username
+    logger.info(f"🔹 Кнопка нажата: {query.data} от пользователя: {user_name}")
 
-            if not all([telegram_id, delivery_date, delivery_time, delivery_address]):
-                return render(request, 'shop/checkout.html', {"error": "Заполните все обязательные поля."})
+    if query.data == "register":
+        await query.message.answer(f"Привет, {user_name}! Вы успешно зарегистрированы.")
 
-            order = Order.objects.create(
-                user=user,
-                telegram_username=profile.telegram_username,
-                delivery_date=delivery_date,
-                delivery_time=delivery_time,
-                delivery_address=delivery_address,
-                comment=comment,
-                total_price=0,
+    elif query.data == "my_order":
+        await handle_my_order(query, user_name)
+
+    elif query.data == "payment":
+        await query.message.answer("Перейдите на страницу оплаты: http://127.0.0.1:8000/payment/")
+
+    elif query.data == "help":
+        await query.message.answer("Свяжитесь с менеджером по телефону: +7 123 456 78 90")
+
+# ✅ Исправленный обработчик "Мой заказ"
+async def handle_my_order(query, user_name):
+    try:
+        if not user_name:
+            await query.message.answer("❌ Ваш Telegram аккаунт не имеет username. Добавьте его в Telegram!")
+            return
+
+        # 🔥 Убираем `@` и ищем профиль (асинхронно!)
+        profile = await sync_to_async(lambda: Profile.objects.filter(telegram_username__iexact=user_name).first())()
+        if not profile:
+            profile = await sync_to_async(lambda: Profile.objects.filter(telegram_username__iexact=f"@{user_name}").first())()
+
+        if not profile:
+            await query.message.answer("❌ Ваш профиль не найден. Укажите Telegram username в профиле сайта.")
+            return
+
+        # ✅ Получаем пользователя Django (асинхронно)
+        user = await sync_to_async(lambda: profile.user)()
+
+        # ✅ Ищем заказы (асинхронно!)
+        orders = await sync_to_async(lambda: list(Order.objects.filter(user=user).prefetch_related("orderitem_set")))()
+
+        if not orders:
+            await query.message.answer("📭 У вас пока нет заказов.")
+            return
+
+        # ✅ Отправляем информацию о заказах
+        for order in orders:
+            items = await sync_to_async(lambda: list(order.orderitem_set.all()))()
+            items_text = "\n".join(
+                [f"🌸 {await sync_to_async(lambda: item.flower.name)()} - {item.quantity} шт." for item in items]
+            )
+            message = (
+                f"🛒 *Заказ #{order.id}*\n"
+                f"📅 Дата доставки: {order.delivery_date}\n"
+                f"⏰ Время: {order.delivery_time}\n"
+                f"📍 Адрес: {order.delivery_address}\n"
+                f"💰 Итог: ₽{order.total_price}\n"
+                f"\n📦 *Товары:* \n{items_text}"
             )
 
-            cart_items = CartItem.objects.filter(user=user)
-            items_data = []
-            total_price = 0
+            await query.message.answer(message, parse_mode="Markdown")
 
-            for item in cart_items:
-                OrderItem.objects.create(order=order, flower=item.flower, quantity=item.quantity)
-                items_data.append({
-                    "name": item.flower.name,
-                    "quantity": item.quantity,
-                    "price": item.flower.price,
-                    "total": item.quantity * item.flower.price,
-                    "photo": item.flower.image.url if item.flower.image else None,
-                })
-                total_price += item.quantity * item.flower.price
+    except Exception as e:
+        logger.error(f"Ошибка при получении заказов: {e}")
+        await query.message.answer("⚠️ Произошла ошибка при получении ваших заказов.")
 
-            cart_items.delete()
-            order.total_price = total_price
-            order.save()
+# ✅ Функция отправки уведомления
+async def send_order_notification(telegram_username, items, total_price, delivery_address, delivery_time, comment):
+    try:
+        user = await bot.get_chat(telegram_username)
+        chat_id = user.id
 
-            # ✅ Асинхронный вызов без блокировки
-            import asyncio
+        message = f"🛒 *Ваш заказ*\n\n"
+        for item in items:
+            message += f"🌸 {item['name']} - {item['quantity']} шт. x ₽{item['price']} = ₽{item['total']}\n"
+        message += f"\n💰 *Общая стоимость:* ₽{total_price}\n📍 Адрес: {delivery_address}\n⏰ Время: {delivery_time}\n✍ Комментарий: {comment}"
 
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(
-                send_order_notification(telegram_id, items_data, total_price, delivery_address, delivery_time, comment))
+        await bot.send_message(chat_id=chat_id, text=message, parse_mode="Markdown")
 
-            return redirect('success_page')
+        for item in items:
+            if item["photo"]:
+                await bot.send_photo(chat_id=chat_id, photo=item["photo"])
 
-        except Exception as e:
-            return render(request, 'shop/checkout.html', {"error": str(e)})
+    except Exception as e:
+        logging.error(f"❌ Ошибка при отправке уведомления: {e}")
 
-    return render(request, 'shop/checkout.html')
+# ✅ Запуск бота
+async def main():
+    await dp.start_polling(bot)
 
+if __name__ == "__main__":
+    asyncio.run(main())
 
-def success_page(request):
-    return render(request, 'shop/success_page.html')
-
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-
-            # Проверяем, есть ли уже профиль для пользователя
-            profile, created = Profile.objects.get_or_create(user=user)
-            if created:
-                telegram_username = request.POST.get("telegram_username", "").strip()
-                if not telegram_username:
-                    telegram_username = f"tg_{get_random_string(10)}"
-                profile.telegram_username = telegram_username
-                profile.save()
-            else:
-                messages.warning(request, "Профиль уже существует для данного пользователя.")
-
-            login(request, user)  # Авторизуем пользователя после регистрации
-            messages.success(request, "Вы успешно зарегистрировались!")
-            return redirect('home')
-
-        else:
-            messages.error(request, "Ошибка регистрации. Проверьте введенные данные.")
-    else:
-        form = CustomUserCreationForm()
-
-    return render(request, 'shop/register.html', {'form': form})
-
-@login_required
-@csrf_exempt
-def update_cart(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            flower_id = data.get("id")
-            quantity = int(data.get("quantity", 1))
-
-            cart_item = CartItem.objects.get(flower_id=flower_id, user=request.user)
-
-            if quantity < 1:
-                cart_item.delete()
-            else:
-                cart_item.quantity = quantity
-                cart_item.save()
-
-            return JsonResponse({"success": True})
-        except CartItem.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Cart item not found."})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-
-    return JsonResponse({"success": False, "error": "Invalid request method."})
-
-
-@login_required
-def add_to_cart(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            flower_id = data.get("id")
-            quantity = int(data.get("quantity", 1))
-
-            flower = Flower.objects.get(id=flower_id)
-            cart_item, created = CartItem.objects.get_or_create(
-                flower=flower,
-                user=request.user
-            )
-            cart_item.quantity += quantity if not created else quantity
-            cart_item.save()
-
-            return JsonResponse({"success": True})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-
-    return JsonResponse({"success": False, "error": "Invalid request method."})
-
-@login_required
-@csrf_exempt
-def send_to_bot(request):
-    if request.method == 'POST':
-        try:
-            if not request.user.is_authenticated:
-                return JsonResponse({"success": False, "error": "Пользователь не авторизован."})
-
-            cart_items = CartItem.objects.filter(user=request.user)
-            if not cart_items.exists():
-                return JsonResponse({"success": False, "error": "Корзина пуста."})
-
-            items = []
-            total_price = 0
-            for item in cart_items:
-                items.append({
-                    "name": item.flower.name,
-                    "quantity": item.quantity,
-                    "price": item.flower.price,
-                    "total": item.quantity * item.flower.price,
-                    "photo": item.flower.image.url if item.flower.image else None,
-                })
-                total_price += item.quantity * item.flower.price
-
-            telegram_username = getattr(request.user.profile, 'telegram_username', None)
-            if not telegram_username:
-                return JsonResponse({"success": False, "error": "Telegram username не найден. Укажите его в профиле."})
-
-            # ✅ Асинхронный вызов без `no running event loop`
-            import asyncio
-
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-
-            loop.create_task(send_order_notification(telegram_username, items, total_price))
-
-            return JsonResponse({"success": True})
-        except Exception as e:
-            logger.error(f"Ошибка при отправке заказа в бота: {e}")
-            return JsonResponse({"success": False, "error": str(e)})
-
-    return JsonResponse({"success": False, "error": "Некорректный метод запроса."})
-
-
-def payment(request):
-    return render(request, 'shop/payment.html')
-
-@login_required
-def profile(request):
-    if request.method == "POST":
-        telegram_username = request.POST.get("telegram_username", "").strip()
-        if telegram_username:
-            profile, _ = Profile.objects.get_or_create(user=request.user)
-            profile.telegram_username = telegram_username
-            profile.save()
-            messages.success(request, "Telegram Username успешно обновлен!")
-        else:
-            messages.error(request, "Введите корректный Telegram Username.")
-        return redirect("profile")
-
-    return render(request, "shop/profile.html")

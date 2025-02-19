@@ -6,70 +6,71 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4">Оформление заказа</h1>
 
-    <!-- Уведомления об ошибках -->
-    {% if error %}
-    <div class="alert alert-danger" role="alert">
-        {{ error }}
-    </div>
+    <!-- 🔍 Отображение сообщений Django -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
     {% endif %}
 
-    <form method="post" action="{% url 'checkout' %}" class="p-4 shadow rounded" style="background-color: rgba(255, 240, 245, 0.8);">
-        {% csrf_token %}
+    <!-- 🚀 Форма заказа -->
+    <form id="checkout-form" method="post" action="{% url 'checkout' %}" class="p-4 shadow rounded">
+        {% csrf_token %}  <!-- ✅ CSRF-токен для защиты -->
+
         <div class="mb-3">
-            <label for="telegram_username" class="form-label">Имя пользователя в Телеграм</label>
-            <input type="text" id="telegram_username" name="telegram_username" class="form-control" placeholder="Введите ваше имя в Телеграм" required>
+            <label for="delivery_date" class="form-label">📅 Дата доставки</label>
+            <input type="date" id="delivery_date" name="delivery_date" class="form-control" required>
         </div>
+
         <div class="mb-3">
-            <label for="delivery_date" class="form-label">Дата доставки</label>
-            <input type="date" id="delivery_date" name="delivery_date" class="form-control" placeholder="Выберите дату" required>
+            <label for="delivery_time" class="form-label">⏰ Время доставки</label>
+            <input type="time" id="delivery_time" name="delivery_time" class="form-control" required>
         </div>
+
         <div class="mb-3">
-            <label for="delivery_time" class="form-label">Время доставки</label>
-            <input type="time" id="delivery_time" name="delivery_time" class="form-control" placeholder="Выберите время" required>
+            <label for="delivery_address" class="form-label">📍 Адрес доставки</label>
+            <textarea id="delivery_address" name="delivery_address" class="form-control" rows="3" required></textarea>
         </div>
+
         <div class="mb-3">
-            <label for="delivery_address" class="form-label">Адрес доставки</label>
-            <textarea id="delivery_address" name="delivery_address" class="form-control" rows="3" placeholder="Введите адрес доставки" required></textarea>
+            <label for="comment" class="form-label">📝 Комментарий (необязательно)</label>
+            <textarea id="comment" name="comment" class="form-control" rows="3"></textarea>
         </div>
-        <div class="mb-3">
-            <label for="comment" class="form-label">Комментарий</label>
-            <textarea id="comment" name="comment" class="form-control" rows="3" placeholder="Добавьте комментарий (по желанию)"></textarea>
-        </div>
-        <button type="submit" class="btn btn-pink w-100" onclick="showLoading()">Оформить заказ</button>
+
+        <button type="submit" id="submit-button" class="btn btn-primary w-100">Оформить заказ</button>
     </form>
+
+    <!-- 🔍 Для отладки -->
+    <p id="debug-info" style="display: none; color: red;"></p>
 </div>
 
-<!-- Стили -->
+<!-- ✅ Стили -->
 <style>
-    .btn-pink {
+    .btn-primary {
         background-color: #ff69b4;
-        color: #fff;
-        border: none;
+        border-color: #ff69b4;
         font-size: 16px;
         font-weight: bold;
     }
 
-    .btn-pink:hover {
+    .btn-primary:hover {
         background-color: #ff85c2;
+        border-color: #ff85c2;
     }
 
-    .btn-pink:disabled {
+    .btn-primary:disabled {
         background-color: #ffc0cb;
         cursor: not-allowed;
     }
 </style>
 
-<!-- Скрипт -->
+<!-- ✅ Скрипты -->
 <script>
-    function showLoading() {
-        const button = document.querySelector('.btn-pink');
-        button.textContent = 'Обработка...';
-        button.disabled = true;
-
-        // Имитация успешного редиректа
-        setTimeout(() => {
-            window.location.href = "{% url 'success_page' %}";
-        }, 2000);
-    }
+    document.getElementById("checkout-form").addEventListener("submit", function (event) {
+        console.log("🚀 Форма отправляется!");
+    });
 </script>
+
 {% endblock %}

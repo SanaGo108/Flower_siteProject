@@ -19,7 +19,7 @@ urlpatterns = [
     path('cart/', views.cart, name='cart'),
     path('cart/update/', views.update_cart, name='update_cart'),  # Добавлен маршрут для обновления корзины
     path('cart/add/', views.add_to_cart, name="add_to_cart"),
-    path('cart/checkout/', views.checkout, name='checkout'),  # Добавить обработчик checkout
+    path('checkout/', views.checkout, name='checkout'),  # Добавить обработчик checkout
     path('accounts/', include('django.contrib.auth.urls')),  # Добавляем маршруты аутентификации
     path('cart/send_to_bot/', views.send_to_bot, name='send_to_bot'),
     path('accounts/register/', views.register, name='register'),  # Маршрут регистрации

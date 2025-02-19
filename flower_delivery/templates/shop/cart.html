@@ -1,6 +1,7 @@
 {% extends "shop/base.html" %}
 {% load custom_filters %}
-{% block title %}Cart{% endblock %}
+
+{% block title %}Корзина{% endblock %}
 
 {% block content %}
 <h1 class="text-center mb-4">Ваша корзина</h1>
@@ -25,14 +26,15 @@
                 <td>
                     <button class="btn btn-pink btn-sm update-cart" data-id="{{ item.flower.id }}" data-quantity="{{ item.quantity|add:1 }}">+</button>
                     <button class="btn btn-pink btn-sm update-cart" data-id="{{ item.flower.id }}" data-quantity="{{ item.quantity|add:-1 }}">-</button>
-                    <button class="btn btn-pink btn-sm update-cart" data-id="{{ item.flower.id }}" data-quantity="0">Удалить</button>
+                    <button class="btn btn-danger btn-sm update-cart" data-id="{{ item.flower.id }}" data-quantity="0">Удалить</button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <p class="text-end fw-bold">Total: ₽{{ cart_total }}</p>
+    <p class="text-end fw-bold">Итого: ₽{{ cart_total }}</p>
 </div>
+
 <!-- Кнопка Оформить заказ -->
 <div class="text-end mt-3">
     <button id="checkout-button" class="btn btn-primary btn-lg" style="background-color: #ff69b4; border-color: #ff69b4;">
@@ -40,7 +42,7 @@
     </button>
 </div>
 
-<!-- Стили для кнопок -->
+<!-- Стили -->
 <style>
     .btn-pink {
         background-color: #ff69b4;
@@ -53,7 +55,7 @@
 </style>
 
 <script>
-    // Обработчик для кнопок обновления корзины
+    // ✅ Обновление корзины
     document.querySelectorAll('.update-cart').forEach(button => {
         button.addEventListener('click', event => {
             const flowerId = event.target.getAttribute('data-id');
@@ -63,7 +65,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify({ id: flowerId, quantity: parseInt(quantity) })
             })
@@ -79,29 +81,14 @@
         });
     });
 
-    // Обработчик для кнопки оформления заказа
-    document.getElementById('checkout-button').addEventListener('click', function (event) {
-        event.preventDefault(); // Останавливаем стандартное действие кнопки
-
-        fetch('/cart/send_to_bot/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Переход на страницу оформления заказа после успешной отправки
-                window.location.href = '/cart/checkout/';
-            } else {
-                alert('Ошибка при оформлении заказа: ' + data.error);
-            }
-        })
-        .catch(error => console.error('Ошибка:', error));
+    // ✅ Переход на страницу оформления заказа
+    document.getElementById('checkout-button').addEventListener('click', function () {
+        window.location.href = "/checkout/";  // ✅ Перенаправляем без fetch()
     });
+
+    // ✅ Получение CSRF-токена
+    function getCSRFToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
+    }
 </script>
 {% endblock %}
-
