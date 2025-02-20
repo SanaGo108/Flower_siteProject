@@ -7,9 +7,12 @@ User = get_user_model()
 
 
 # Модель профиля пользователя с Telegram username
+from django.contrib.auth.models import User
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    telegram_username = models.CharField(max_length=255, blank=True, null=True)
+    chat_id = models.BigIntegerField(null=True, blank=True)  # Добавляем chat_id
+
 
     def __str__(self):
         return f"{self.user.username}'s profile"
@@ -41,10 +44,11 @@ class CartItem(models.Model):
 
 
 # Модель заказа
+# models.py
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    telegram_username = models.CharField(max_length=255, blank=True, null=True)
+    chat_id = models.BigIntegerField(null=True, blank=True)  # ✅ ДОБАВЛЕНО
     delivery_date = models.DateField()
     delivery_time = models.TimeField()
     delivery_address = models.TextField()
@@ -62,6 +66,7 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
+
 
 
 # Товары в заказе

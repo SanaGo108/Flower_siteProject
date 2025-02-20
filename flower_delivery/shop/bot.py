@@ -1,5 +1,6 @@
 import sys
 import os
+import requests
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, types
@@ -99,28 +100,24 @@ async def handle_callback(query: types.CallbackQuery):
 
 
 # Функция отправки уведомления
-async def send_order_notification(telegram_username, items, total_price, delivery_address, delivery_time, comment):
+async def send_order_notification(chat_id, items, total_price, delivery_address, delivery_time, comment):
     try:
-        # ✅ Убираем "@" в Telegram username, если он есть
-        telegram_username = telegram_username.replace("@", "")
-
-        # ✅ Проверяем, может ли бот найти пользователя
-        user = await bot.get_chat(telegram_username)
-        chat_id = user.id
-
-        message = f"🛒 *Ваш заказ*\n\n"
+        message = "🛒 *Ваш заказ*\n\n"
         for item in items:
             message += f"🌸 {item['name']} - {item['quantity']} шт. x ₽{item['price']} = ₽{item['total']}\n"
-        message += f"\n💰 *Общая стоимость:* ₽{total_price}\n"
+        message += f"\n💰 *Общая стоимость:* ₽{total_price}\n📍 *Адрес доставки:* {delivery_address}\n⏰ *Время доставки:* {delivery_time}\n📝 *Комментарий:* {comment}"
 
-        await bot.send_message(chat_id=f"@{telegram_username}", text=message, parse_mode="Markdown")
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        data = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
 
-        for item in items:
-            if item["photo"]:
-                await bot.send_photo(chat_id=f"@{telegram_username}", photo=item["photo"])
+        response = requests.post(url, data=data)
+        logging.info(f"🔹 Ответ Telegram API: {response.json()}")
+
+        if response.json().get("ok") is False:
+            logging.error(f"❌ Ошибка при отправке сообщения: {response.json()}")
 
     except Exception as e:
-        logging.error(f"Ошибка при отправке уведомления: {e}")
+        logging.error(f"❌ Ошибка при отправке уведомления: {e}")
 
 
 # Запуск бота через `asyncio`
